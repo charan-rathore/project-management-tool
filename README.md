@@ -34,7 +34,9 @@ A full-stack project management web application built for a hiring assignment. T
 - Members view their assigned tasks and update statuses
 - Everyone gets a dashboard showing progress at a glance
 
-**Live Demo:** `[Your Railway URL after deployment]`
+**Live URLs:**
+- Frontend: https://frontend-production-352f.up.railway.app
+- Backend API: https://backend-production-e1e6.up.railway.app
 
 **Tech Stack:**
 
@@ -595,15 +597,15 @@ git push -u origin main
    - `JWT_SECRET` → generate a strong random string
    - `NODE_ENV` → `production`
    - `FRONTEND_URL` → (set after deploying frontend)
-5. Deploy. The `railway.json` runs `prisma migrate deploy` before starting.
+5. Deploy. The `railway.json` runs `prisma db push` before starting.
 
 ### Step 4: Deploy Frontend
 
 1. Click **+ New Service → GitHub Repo**
 2. Set root directory to `frontend/`
-3. Set environment variable:
+3. The frontend Dockerfile has the backend URL hardcoded as a build-arg default — it works out of the box. Optionally set:
    - `VITE_API_URL` → `https://your-backend.railway.app/api`
-4. Build command: `npm run build`
+4. Railway will detect the Dockerfile automatically and use it for the build.
 5. Deploy
 
 ### Step 5: Update CORS
@@ -622,13 +624,15 @@ cd backend && npm run prisma:seed
 
 ## Demo Credentials
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@demo.com | admin123 |
-| Member | bob@demo.com | member123 |
-| Member | carol@demo.com | member123 |
+**Live app:** https://frontend-production-352f.up.railway.app
 
-The admin account can see all projects and perform all operations. Member accounts are restricted to assigned tasks and their own projects.
+| Role | Email | Password | Name |
+|------|-------|----------|------|
+| Admin | admin@demo.com | admin123 | Alice Admin |
+| Member | bob@demo.com | member123 | Bob Member |
+| Member | carol@demo.com | member123 | Carol Member |
+
+The admin account can see all projects and perform all operations. Member accounts are restricted to projects they belong to and can only update the status of tasks assigned to them.
 
 ---
 
