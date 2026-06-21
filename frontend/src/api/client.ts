@@ -1,16 +1,8 @@
 import axios from 'axios';
 
-// Why Axios interceptors?
-// Every API call needs the auth token. Instead of manually adding it to every request,
-// an interceptor runs before each request and injects the token automatically.
-// If a 401 comes back, we intercept it and redirect to login — one place, one concern.
-
-// In production the Vite build-time env var may not be injected via Docker ARG.
-// Runtime fallback: if not on localhost, use the known production backend URL.
-const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-const BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  (isLocalhost ? '/api' : 'https://backend-production-e1e6.up.railway.app/api');
+// VITE_API_URL is baked in at build time by Vite.
+// In local dev, the Vite proxy handles /api → localhost:5000, so we fall back to '/api'.
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

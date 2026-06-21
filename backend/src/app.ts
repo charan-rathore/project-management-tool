@@ -15,7 +15,11 @@ const app = express();
 // CORS headers tell the browser: "This server allows requests from these origins."
 app.use(
   cors({
-    origin: [config.frontendUrl, 'http://localhost:5173', 'http://localhost:4173'],
+    origin: [
+      config.frontendUrl,
+      'http://localhost:5173',
+      'http://localhost:4173',
+    ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

@@ -19,7 +19,7 @@ A full-stack project management web application built for a hiring assignment. T
 11. [Backend Structure](#backend-structure)
 12. [Local Setup](#local-setup)
 13. [Environment Variables](#environment-variables)
-14. [Deployment Guide (Railway)](#deployment-guide-railway)
+14. [Deployment Guide (Render + Vercel)](#deployment-guide-render--vercel)
 15. [Demo Credentials](#demo-credentials)
 16. [Tradeoffs & Future Improvements](#tradeoffs--future-improvements)
 17. [Lessons Learned](#lessons-learned)
@@ -35,8 +35,8 @@ A full-stack project management web application built for a hiring assignment. T
 - Everyone gets a dashboard showing progress at a glance
 
 **Live URLs:**
-- Frontend: https://frontend-production-352f.up.railway.app
-- Backend API: https://backend-production-e1e6.up.railway.app
+- Frontend: *(Deploy to Vercel — see Deployment Guide below)*
+- Backend API: *(Deploy to Render — see Deployment Guide below)*
 
 **Tech Stack:**
 
@@ -48,7 +48,7 @@ A full-stack project management web application built for a hiring assignment. T
 | Database | PostgreSQL |
 | ORM | Prisma |
 | Auth | JWT + bcrypt |
-| Deployment | Railway |
+| Deployment | Render (backend) + Vercel (frontend) |
 
 ---
 
@@ -134,16 +134,22 @@ Writing raw SQL is error-prone and doesn't integrate well with TypeScript. Prism
 3. Handles migrations — schema changes are versioned and reproducible
 4. Readable: `prisma.task.findMany({ where: { status: 'TODO' } })` reads like English
 
-### Why Railway for deployment?
+### Why Render + Vercel for deployment?
 
-Railway provides managed infrastructure with zero infrastructure management:
-- Provision a PostgreSQL database with one click
-- Deploy from GitHub on push
-- Environment variables managed in UI
-- Free tier sufficient for demos
-- Auto-SSL, custom domains available
+**Render (Backend + PostgreSQL):**
+- Free tier with zero credit card requirement
+- Provision a PostgreSQL database with one click (free for 90 days, then swap to Neon free tier)
+- Deploy from GitHub on push with auto-build
+- Environment variables managed in dashboard
+- Free SSL included
 
-Alternative: Render, Fly.io, Heroku. Railway was chosen for speed of setup and reliable PostgreSQL provisioning.
+**Vercel (Frontend):**
+- Permanent free tier, no credit card required
+- Optimized for React/Vite SPAs with global edge CDN
+- Instant deploys on git push
+- Automatic HTTPS and preview deployments for PRs
+
+Alternative backends: Koyeb (512MB free), Hugging Face Spaces (Docker). Alternative frontends: Netlify.
 
 ---
 
@@ -152,7 +158,7 @@ Alternative: Render, Fly.io, Heroku. Railway was chosen for speed of setup and r
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                        Browser                          │
-│   React SPA (Vite) — served from Railway static host   │
+│   React SPA (Vite) — served from Vercel CDN             │
 │   Stores JWT in localStorage                            │
 │   Sends Authorization: Bearer <token> on every request │
 └─────────────────┬───────────────────────────────────────┘
@@ -160,7 +166,7 @@ Alternative: Render, Fly.io, Heroku. Railway was chosen for speed of setup and r
                   ▼
 ┌─────────────────────────────────────────────────────────┐
 │                    Express API Server                   │
-│   Railway Node.js service                               │
+│   Render Web Service (free tier)                        │
 │                                                         │
 │   POST /api/auth/register  → create user + JWT          │
 │   POST /api/auth/login     → verify + JWT               │
@@ -175,7 +181,7 @@ Alternative: Render, Fly.io, Heroku. Railway was chosen for speed of setup and r
                   ▼
 ┌─────────────────────────────────────────────────────────┐
 │                  PostgreSQL Database                    │
-│   Railway managed PostgreSQL                            │
+│   Render managed PostgreSQL (free) / Neon (free)        │
 │                                                         │
 │   users / projects / project_members / tasks            │
 └─────────────────────────────────────────────────────────┘
@@ -556,13 +562,13 @@ Frontend runs on `http://localhost:5173`
 | `JWT_EXPIRES_IN` | Token expiry | `7d` |
 | `PORT` | Server port | `5000` |
 | `NODE_ENV` | Environment | `production` |
-| `FRONTEND_URL` | Allowed CORS origin | `https://your-frontend.railway.app` |
+| `FRONTEND_URL` | Allowed CORS origin | `https://taskflow.vercel.app` |
 
 ### Frontend (`.env`)
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `VITE_API_URL` | Backend API base URL | `https://your-backend.railway.app/api` |
+| `VITE_API_URL` | Backend API base URL | `https://taskflow-api.onrender.com/api` |
 
 **Why separate env files?**
 
@@ -570,61 +576,96 @@ The frontend `.env` is baked into the JavaScript bundle at build time (Vite inli
 
 ---
 
-## Deployment Guide (Railway)
+## Deployment Guide (Render + Vercel)
+
+Both platforms are **100% free** and require **no credit card**.
 
 ### Step 1: Push to GitHub
 
 ```bash
 git add .
-git commit -m "Initial implementation"
-git remote add origin https://github.com/charan-rathore/project-management-tool
+git commit -m "Migrate deployment to Render + Vercel"
 git push -u origin main
 ```
 
-### Step 2: Create Railway project
+### Step 2: Deploy Backend on Render
 
-1. Go to [railway.app](https://railway.app) and create a new project
-2. Add a **PostgreSQL** plugin — Railway provisions it instantly
-3. Copy the `DATABASE_URL` from the PostgreSQL service
+1. Go to [render.com](https://render.com) and sign up with GitHub
+2. Click **New → PostgreSQL** and create a free database:
+   - Name: `taskflow-db`
+   - Plan: **Free**
+   - Copy the **Internal Database URL** after creation
+3. Click **New → Web Service**
+4. Connect your GitHub repo, set:
+   - **Name:** `taskflow-api`
+   - **Root Directory:** `backend`
+   - **Runtime:** Node
+   - **Build Command:** `npm install && npx prisma generate && npm run build`
+   - **Start Command:** `npx prisma migrate deploy && node dist/server.js`
+5. Add environment variables:
+   | Variable | Value |
+   |----------|-------|
+   | `DATABASE_URL` | *(paste the Internal Database URL from step 2)* |
+   | `JWT_SECRET` | *(generate: `openssl rand -base64 32`)* |
+   | `JWT_EXPIRES_IN` | `7d` |
+   | `NODE_ENV` | `production` |
+   | `PORT` | `5000` |
+   | `FRONTEND_URL` | *(set after deploying frontend, e.g. `https://taskflow.vercel.app`)* |
+6. Deploy. Render will build and start your backend automatically.
+7. Your backend URL will be something like: `https://taskflow-api.onrender.com`
 
-### Step 3: Deploy Backend
+### Step 3: Deploy Frontend on Vercel
 
-1. Click **+ New Service → GitHub Repo**
-2. Select the repo, set root directory to `backend/`
-3. Railway auto-detects Node.js (Nixpacks)
-4. Set environment variables:
-   - `DATABASE_URL` → from PostgreSQL plugin
-   - `JWT_SECRET` → generate a strong random string
-   - `NODE_ENV` → `production`
-   - `FRONTEND_URL` → (set after deploying frontend)
-5. Deploy. The `railway.json` runs `prisma db push` before starting.
+1. Go to [vercel.com](https://vercel.com) and sign up with GitHub
+2. Click **Add New → Project**
+3. Import your GitHub repo
+4. Configure:
+   - **Framework Preset:** Vite
+   - **Root Directory:** `frontend`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+5. Add environment variable:
+   | Variable | Value |
+   |----------|-------|
+   | `VITE_API_URL` | `https://taskflow-api.onrender.com/api` *(your Render backend URL + /api)* |
+6. Deploy. Vercel builds and deploys in ~30 seconds.
 
-### Step 4: Deploy Frontend
+### Step 4: Update CORS
 
-1. Click **+ New Service → GitHub Repo**
-2. Set root directory to `frontend/`
-3. The frontend Dockerfile has the backend URL hardcoded as a build-arg default — it works out of the box. Optionally set:
-   - `VITE_API_URL` → `https://your-backend.railway.app/api`
-4. Railway will detect the Dockerfile automatically and use it for the build.
-5. Deploy
+Go back to Render dashboard → your backend service → Environment:
+- Set `FRONTEND_URL` to your Vercel frontend URL (e.g., `https://taskflow.vercel.app`)
+- Redeploy the backend service
 
-### Step 5: Update CORS
+### Step 5: Seed the Database
 
-In the backend Railway service, update:
-- `FRONTEND_URL` → your frontend Railway URL
-
-### Step 6: Seed the database
-
-From the Railway CLI or the Railway dashboard terminal:
+From your local machine (with the Render DATABASE_URL):
 ```bash
-cd backend && npm run prisma:seed
+cd backend
+DATABASE_URL="postgresql://taskflow_user:PASSWORD@HOST:5432/taskflow" npx ts-node prisma/seed.ts
 ```
+
+Or use Render's Shell tab in the dashboard to run the seed.
+
+### Important Notes
+
+- **Render free tier spins down after 15 min of inactivity.** First request after sleep takes ~30s to cold-start. This is normal for free tier.
+- **PostgreSQL on Render free tier expires after 90 days.** When it does, migrate to [Neon](https://neon.tech) (free forever, no card required) — just update `DATABASE_URL`.
+- **Vercel is always-on** — your frontend loads instantly from a global CDN.
+
+---
+
+### Alternative: Using render.yaml (Infrastructure as Code)
+
+This repo includes a `render.yaml` at the root. You can use Render Blueprints for one-click setup:
+
+1. Go to [Render Dashboard → Blueprints](https://dashboard.render.com/blueprints)
+2. Connect your repo
+3. Render reads `render.yaml` and provisions the database + web service automatically
+4. You only need to manually set `FRONTEND_URL` after deploying the frontend on Vercel
 
 ---
 
 ## Demo Credentials
-
-**Live app:** https://frontend-production-352f.up.railway.app
 
 | Role | Email | Password | Name |
 |------|-------|----------|------|
@@ -677,8 +718,8 @@ The same type errors that Prisma generates on the backend are reflected in the f
 **4. React Query eliminates 80% of data-fetching boilerplate.**
 No manual loading states, no useEffect dependency arrays, no cache invalidation bugs — React Query handles all of it.
 
-**5. Railway is genuinely easy.**
-Zero infrastructure work. The biggest deployment challenge was getting environment variables right, not the infrastructure.
+**5. Render + Vercel is the best free stack.**
+Zero cost, zero credit card, auto-deploys from GitHub. The frontend on Vercel loads instantly from a global CDN, and the backend on Render is simple to configure. The only tradeoff is cold starts on the free tier (30s after 15min inactivity).
 
 ---
 
