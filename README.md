@@ -35,8 +35,8 @@ A full-stack project management web application built for a hiring assignment. T
 - Everyone gets a dashboard showing progress at a glance
 
 **Live URLs:**
-- Frontend: *(Deploy to Vercel — see Deployment Guide below)*
-- Backend API: *(Deploy to Render — see Deployment Guide below)*
+- Frontend: https://project-management-tool-nine-zeta.vercel.app
+- Backend API: https://taskflow-api-q9f4.onrender.com
 
 **Tech Stack:**
 
@@ -562,13 +562,13 @@ Frontend runs on `http://localhost:5173`
 | `JWT_EXPIRES_IN` | Token expiry | `7d` |
 | `PORT` | Server port | `5000` |
 | `NODE_ENV` | Environment | `production` |
-| `FRONTEND_URL` | Allowed CORS origin | `https://taskflow.vercel.app` |
+| `FRONTEND_URL` | Allowed CORS origin | `https://project-management-tool-nine-zeta.vercel.app` |
 
 ### Frontend (`.env`)
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `VITE_API_URL` | Backend API base URL | `https://taskflow-api.onrender.com/api` |
+| `VITE_API_URL` | Backend API base URL | `https://taskflow-api-q9f4.onrender.com/api` |
 
 **Why separate env files?**
 
@@ -612,7 +612,7 @@ git push -u origin main
    | `PORT` | `5000` |
    | `FRONTEND_URL` | *(set after deploying frontend, e.g. `https://taskflow.vercel.app`)* |
 6. Deploy. Render will build and start your backend automatically.
-7. Your backend URL will be something like: `https://taskflow-api.onrender.com`
+7. Your backend URL will be: `https://taskflow-api-q9f4.onrender.com`
 
 ### Step 3: Deploy Frontend on Vercel
 
@@ -627,13 +627,13 @@ git push -u origin main
 5. Add environment variable:
    | Variable | Value |
    |----------|-------|
-   | `VITE_API_URL` | `https://taskflow-api.onrender.com/api` *(your Render backend URL + /api)* |
+   | `VITE_API_URL` | `https://taskflow-api-q9f4.onrender.com/api` |
 6. Deploy. Vercel builds and deploys in ~30 seconds.
 
 ### Step 4: Update CORS
 
 Go back to Render dashboard → your backend service → Environment:
-- Set `FRONTEND_URL` to your Vercel frontend URL (e.g., `https://taskflow.vercel.app`)
+- Set `FRONTEND_URL` to your Vercel frontend URL: `https://project-management-tool-nine-zeta.vercel.app`
 - Redeploy the backend service
 
 ### Step 5: Seed the Database
@@ -666,6 +666,8 @@ This repo includes a `render.yaml` at the root. You can use Render Blueprints fo
 ---
 
 ## Demo Credentials
+
+**Live app:** https://project-management-tool-nine-zeta.vercel.app
 
 | Role | Email | Password | Name |
 |------|-------|----------|------|
